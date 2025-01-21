@@ -1,0 +1,12 @@
+
+
+# All IDE and MacOS files
+.idea/
+.DS_Store/
+
+# All env files
+*.env
+!*.sample.env
+
+# All ignored files
+*.ignore
