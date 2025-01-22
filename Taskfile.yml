@@ -1,8 +1,40 @@
 version: '3'
 
 tasks:
+
+  ### Testing Suits
   test:
     desc: "Run all tests"
     cmds:
       - echo "Starting tests"
       - go test ./... -v --race
+
+  ### Development Commands
+  dev:docker:build:
+    desc: "Forces new build on Docker"
+    cmds:
+      - docker compose --file ./Dockercompose.yml --env-file ./Dockercompose.dev.env build --no-cache
+
+  dev:db:start:
+    desc: "Run PG locally using Docker"
+    cmds:
+      - echo "Starting docker:tt-pg"
+      - docker compose --file ./Dockercompose.yml --env-file ./Dockercompose.dev.env up --build --force-recreate -d tt-pg
+
+  dev:db:stop:
+    desc: "Stop PG locally running on Docker"
+    cmds:
+      - echo "Stopping docker:tt-pg"
+      - docker compose --file ./Dockercompose.yml --env-fil ./Dockercompose.dev.env down tt-pg
+
+  dev:app:start:
+    desc: "Run Tag Track Backend locally using Docker"
+    cmds:
+      - echo "Starting docker:tt-backend"
+      - docker compose --file ./Dockercompose.yml --env-file ./Dockercompose.dev.env up --build --force-recreate tt-backend
+
+  dev:
+    desc: "Runs the entire Docker suite locally"
+    cmds:
+      - echo "Starting Tag Track Docker suite"
+      - docker compose --file ./Dockercompose.yml --env-file ./Dockercompose.dev.env up --build --force-recreate
