@@ -1,6 +1,7 @@
 package database
 
 import (
+	"Backend/internal/models"
 	"context"
 	"fmt"
 	"gorm.io/driver/postgres"
@@ -99,5 +100,31 @@ func (g *GormPgAdapter) Disconnect(ctx context.Context) error {
 	}
 
 	g.db = nil // Set to nil to indicate the connection is closed
+	return nil
+}
+
+func (g *GormPgAdapter) Migrate(ctx context.Context) error {
+	if err := g.ensureDbConnection(ctx); err != nil {
+		return err
+	}
+
+	if err := g.db.
+		WithContext(ctx).
+		AutoMigrate(
+			&models.Entity{},
+		); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (g *GormPgAdapter) CreateEntity(ctx context.Context, e *models.Entity) error {
+	if err := g.ensureDbConnection(ctx); err != nil {
+		return err
+	}
+	if res := g.db.WithContext(ctx).Create(e); res.Error != nil {
+		return res.Error
+	}
 	return nil
 }
