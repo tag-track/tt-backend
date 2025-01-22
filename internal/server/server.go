@@ -18,7 +18,7 @@ func createDbInstance() *database.GormPgAdapter {
 
 	db, err := database.CreateGormPgAdapter(
 		e.DbHost,
-		e.DbHost,
+		e.DbUser,
 		e.DbPassword,
 		e.DbPort,
 		e.DbName,
