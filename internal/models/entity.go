@@ -16,7 +16,7 @@ type Entity struct {
 	Images      []string       `json:"images" gorm:"type:text"`
 	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt   gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
 }
 
 ////////////////////////////////////////////////
@@ -51,7 +51,7 @@ func (e *Entity) BeforeDelete(tx *gorm.DB) (err error) {
 
 type NewEntityOption func(entity *Entity)
 
-func New(
+func NewEntity(
 	opts ...NewEntityOption,
 ) *Entity {
 	entity := &Entity{}
@@ -75,6 +75,10 @@ func EntityWithDescription(desc string) NewEntityOption {
 
 func EntityWithParentId(id string) NewEntityOption {
 	return func(e *Entity) {
+		if id == "" {
+			e.ParentId = nil
+			return
+		}
 		e.ParentId = &id
 	}
 }
