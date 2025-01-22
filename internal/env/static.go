@@ -3,13 +3,13 @@ package env
 import "github.com/caarlos0/env/v11"
 
 type StaticEnvStruct struct {
-	ServerPort int
+	ServerPort int `env:"SERVER_PORT"`
 
-	DbHost     string
-	DbPort     int
-	DbUser     string
-	DbPassword string
-	DbName     string
+	DbHost     string `env:"DB_HOST"`
+	DbPort     int    `env:"DB_PORT"`
+	DbUser     string `env:"DB_USER"`
+	DbPassword string `env:"DB_PASSWORD"`
+	DbName     string `env:"DB_NAME"`
 }
 
 var (
