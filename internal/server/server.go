@@ -24,7 +24,11 @@ func createDbInstance() *database.GormPgAdapter {
 		e.DbName,
 	)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
+	}
+
+	if err := db.Migrate(context.Background()); err != nil {
+		log.Fatalln(err)
 	}
 
 	return db
@@ -50,8 +54,9 @@ func Serve() {
 			),
 		)
 
+	log.Printf("Starting server on 0.0.0.0:%v", e.ServerPort)
 	_ = http.ListenAndServe(
-		fmt.Sprintf("0.0.0.0:%v", e.DbPort),
+		fmt.Sprintf("0.0.0.0:%v", e.ServerPort),
 		mainRouter,
 	)
 }
