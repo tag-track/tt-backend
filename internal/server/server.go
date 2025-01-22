@@ -3,9 +3,11 @@ package server
 import (
 	"Backend/internal/database"
 	"Backend/internal/env"
-	"Backend/internal/server/handler/api"
+	"Backend/internal/server/handler/api/v1"
 	"Backend/internal/server/middleware"
+	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -37,11 +39,11 @@ func Serve() {
 
 	mainRouter.
 		Handle(
-			"/api/",
+			"/api/v1/",
 			http.StripPrefix(
-				"/api",
+				"/api/v1",
 				middleware.Apply(
-					api.Router(),
+					v1.Router(),
 					middleware.ApplyTimeout(150*time.Millisecond),
 					middleware.ApplyAttachDb(db),
 				),
