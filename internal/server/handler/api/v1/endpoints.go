@@ -6,6 +6,8 @@ import (
 	"Backend/internal/thumbnail"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/lucsky/cuid"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -30,28 +32,67 @@ func create(w http.ResponseWriter, r *http.Request) {
 
 	// Extract form values
 	id := r.FormValue("id")
+
+	if id == "" {
+		id = cuid.New()
+	}
+
 	name := r.FormValue("name")
 	description := r.FormValue("description")
 	parentId := r.FormValue("parent_id")
 
 	// Extract images
 	images := r.MultipartForm.File["images"]
+	thumbnails := make([]string, 0)
+
+	// Get Minio Object
+	objStore, ok := middleware.GetObjStoreFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unable to load ObjectStore instance", http.StatusInternalServerError)
+		return
+	}
+
+	var thErrFlag error
+	mut := sync.Mutex{}
+
 	wg := sync.WaitGroup{}
 	wg.Add(len(images))
 	for _, img := range images {
-		go func(img *multipart.FileHeader) {
+		go func(img *multipart.FileHeader, _id string) {
 			imgBody, _ := img.Open()
-			_, _ = thumbnail.NewThumbnailsFromMultipart(imgBody)
+			t, err := thumbnail.NewThumbnailsFromMultipart(imgBody, _id)
+			if err != nil {
+				log.Printf("%v", err)
+				thErrFlag = err
+				return
+			}
+
+			if err := objStore.UploadThumbnail(r.Context(), t); err != nil {
+				thErrFlag = err
+				log.Printf("%v", err)
+				return
+			}
+
+			mut.Lock()
+			thumbnails = append(thumbnails, fmt.Sprintf("/images/v1/%s", t.GetImageBaseNameWithExt()))
+			mut.Unlock()
+
 			wg.Done()
-		}(img)
+		}(img, id)
 	}
 	wg.Wait()
+
+	if thErrFlag != nil {
+		http.Error(w, "Unable to generate thumbnails", http.StatusInternalServerError)
+		return
+	}
 
 	entity := models.NewEntity(
 		models.EntityWithId(id),
 		models.EntityWithName(name),
 		models.EntityWithDescription(description),
 		models.EntityWithParentId(parentId),
+		models.EntityWithImages(thumbnails),
 	)
 
 	// Create entity in the database
@@ -61,6 +102,7 @@ func create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := db.CreateEntity(r.Context(), entity); err != nil {
+		log.Println(err)
 		http.Error(w, "Unable to insert entity", http.StatusInternalServerError)
 		return
 	}
