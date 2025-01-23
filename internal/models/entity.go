@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"github.com/lib/pq"
 	"github.com/lucsky/cuid"
 	"gorm.io/gorm"
 	"time"
@@ -14,7 +15,7 @@ type Entity struct {
 	Children    []*Entity      `json:"children" gorm:"foreignKey:ParentId"`
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
-	Images      []string       `json:"images" gorm:"type:text"`
+	Images      pq.StringArray `json:"images" gorm:"type:text[]"`
 	CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
@@ -92,6 +93,6 @@ func EntityWithParentId(id string) NewEntityOption {
 
 func EntityWithImages(imageUrls []string) NewEntityOption {
 	return func(e *Entity) {
-		e.Images = imageUrls
+		e.Images = pq.StringArray(imageUrls)
 	}
 }
