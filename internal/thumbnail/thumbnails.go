@@ -1,6 +1,8 @@
 package thumbnail
 
 import (
+	"fmt"
+	"github.com/lucsky/cuid"
 	"mime/multipart"
 	"sync"
 )
@@ -20,6 +22,9 @@ func (s Size) Px() int {
 }
 
 type Thumbnails struct {
+	EntityId      string
+	Discriminator string
+
 	ExtraSmall []byte // 128 Max len
 	Small      []byte // 480 Max len
 	Medium     []byte // 640 Max len
@@ -53,6 +58,18 @@ func WithThumbnailSize(img []byte, size Size) NewThumbnailOption {
 	}
 }
 
+func WithThumbnailEntityId(id string) NewThumbnailOption {
+	return func(th *Thumbnails) {
+		th.EntityId = id
+	}
+}
+
+func WithThumbnailDiscriminator() NewThumbnailOption {
+	return func(th *Thumbnails) {
+		th.Discriminator = cuid.New()
+	}
+}
+
 func NewThumbnails(opts ...NewThumbnailOption) *Thumbnails {
 	th := &Thumbnails{}
 	for _, o := range opts {
@@ -61,7 +78,7 @@ func NewThumbnails(opts ...NewThumbnailOption) *Thumbnails {
 	return th
 }
 
-func NewThumbnailsFromMultipart(file multipart.File) (*Thumbnails, error) {
+func NewThumbnailsFromMultipart(file multipart.File, entityId string) (*Thumbnails, error) {
 	jpegImg, err := convertFileToJpeg(file)
 	if err != nil {
 		return nil, err
@@ -105,5 +122,30 @@ func NewThumbnailsFromMultipart(file multipart.File) (*Thumbnails, error) {
 		return nil, fnError
 	}
 
+	thumbnailOpt = append(thumbnailOpt, WithThumbnailEntityId(entityId))
+	thumbnailOpt = append(thumbnailOpt, WithThumbnailDiscriminator())
+
 	return NewThumbnails(thumbnailOpt...), nil
+}
+
+func (t *Thumbnails) GetImageBaseName() string {
+	return fmt.Sprintf("%s_%s", t.EntityId, t.Discriminator)
+}
+
+func (t *Thumbnails) GetImageBaseNameWithExt() string {
+	return fmt.Sprintf("%s.jpeg", t.GetImageBaseName())
+}
+
+func (t *Thumbnails) GetImageDataMap() *map[string][]byte {
+	res := make(map[string][]byte)
+
+	baseName := t.GetImageBaseName()
+
+	res[fmt.Sprintf("%s_%s.jpeg", baseName, "xs")] = t.ExtraSmall
+	res[fmt.Sprintf("%s_%s.jpeg", baseName, "s")] = t.Small
+	res[fmt.Sprintf("%s_%s.jpeg", baseName, "m")] = t.Medium
+	res[fmt.Sprintf("%s_%s.jpeg", baseName, "l")] = t.Large
+	res[fmt.Sprintf("%s_%s.jpeg", baseName, "xl")] = t.ExtraLarge
+
+	return &res
 }
