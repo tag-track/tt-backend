@@ -48,15 +48,17 @@ func Serve() {
 				"/api/v1",
 				middleware.Apply(
 					v1.Router(),
-					middleware.ApplyTimeout(500*time.Millisecond),
 					middleware.ApplyAttachDb(db),
+					middleware.ApplyTimeout(500*time.Millisecond),
 				),
 			),
 		)
 
+	loggedRouter := middleware.LoggingMiddleware(mainRouter)
+
 	log.Printf("Starting server on 0.0.0.0:%v", e.ServerPort)
 	_ = http.ListenAndServe(
 		fmt.Sprintf("0.0.0.0:%v", e.ServerPort),
-		mainRouter,
+		loggedRouter,
 	)
 }
