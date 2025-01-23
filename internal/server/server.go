@@ -3,6 +3,7 @@ package server
 import (
 	"Backend/internal/database"
 	"Backend/internal/env"
+	"Backend/internal/objectstore"
 	"Backend/internal/server/handler/api/v1"
 	"Backend/internal/server/middleware"
 	"context"
@@ -38,6 +39,7 @@ func Serve() {
 
 	e := env.GetStaticEnv()
 	db := createDbInstance()
+	objStore := objectstore.NewMinioAdapter()
 
 	mainRouter := http.NewServeMux()
 
@@ -48,8 +50,9 @@ func Serve() {
 				"/api/v1",
 				middleware.Apply(
 					v1.Router(),
+					middleware.ApplyTimeout(2000*time.Millisecond),
+					middleware.ApplyAttachObjStore(objStore),
 					middleware.ApplyAttachDb(db),
-					middleware.ApplyTimeout(500*time.Millisecond),
 				),
 			),
 		)
