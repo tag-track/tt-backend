@@ -48,7 +48,7 @@ func Serve() {
 				"/api/v1",
 				middleware.Apply(
 					v1.Router(),
-					middleware.ApplyTimeout(150*time.Millisecond),
+					middleware.ApplyTimeout(500*time.Millisecond),
 					middleware.ApplyAttachDb(db),
 				),
 			),

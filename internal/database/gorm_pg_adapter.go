@@ -119,6 +119,10 @@ func (g *GormPgAdapter) Migrate(ctx context.Context) error {
 	return nil
 }
 
+////////////////////////////////////////////////
+// DB Methods
+////////////////////////////////////////////////
+
 func (g *GormPgAdapter) CreateEntity(ctx context.Context, e *models.Entity) error {
 	if err := g.ensureDbConnection(ctx); err != nil {
 		return err
@@ -127,4 +131,59 @@ func (g *GormPgAdapter) CreateEntity(ctx context.Context, e *models.Entity) erro
 		return res.Error
 	}
 	return nil
+}
+
+// QueryTopLevel
+// this method is to get top level entities with its direct children populated.
+func (g *GormPgAdapter) QueryTopLevel(ctx context.Context) ([]*models.Entity, error) {
+	if err := g.ensureDbConnection(ctx); err != nil {
+		return nil, err
+	}
+
+	var entities []*models.Entity
+	if err := g.db.
+		Where("parent_id IS NULL").
+		Preload("Children").
+		Find(&entities).
+		Error; err != nil {
+		return nil, err
+	}
+
+	return entities, nil
+}
+
+func (g *GormPgAdapter) QueryById(ctx context.Context, id string) (*models.Entity, error) {
+	if err := g.ensureDbConnection(ctx); err != nil {
+		return nil, err
+	}
+
+	var entities models.Entity
+
+	if err := g.db.
+		Preload("Children").
+		First(&entities, "id = ?", id).
+		Error; err != nil {
+		return nil, err
+	}
+
+	return &entities, nil
+}
+
+func (g *GormPgAdapter) QueryMultipleById(ctx context.Context, ids ...string) ([]*models.Entity, error) {
+	if err := g.ensureDbConnection(ctx); err != nil {
+		return nil, err
+	}
+
+	var entities []*models.Entity
+
+	if err := g.db.
+		Preload("Children").
+		Where("id IN ?", ids).
+		Find(&entities).
+		Error; err != nil {
+		return nil, err
+	}
+
+	return entities, nil
+
 }

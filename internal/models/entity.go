@@ -11,6 +11,7 @@ type Entity struct {
 	Id          string         `json:"id" gorm:"primaryKey"`
 	ParentId    *string        `json:"parent_id" gorm:"index"` // Allow null for top-level entities
 	Parent      *Entity        `gorm:"foreignKey:ParentId"`    // Self-referencing relationship
+	Children    []*Entity      `json:"children" gorm:"foreignKey:ParentId"`
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
 	Images      []string       `json:"images" gorm:"type:text"`
@@ -59,6 +60,12 @@ func NewEntity(
 		o(entity)
 	}
 	return entity
+}
+
+func EntityWithId(id string) NewEntityOption {
+	return func(e *Entity) {
+		e.Id = id
+	}
 }
 
 func EntityWithName(name string) NewEntityOption {
