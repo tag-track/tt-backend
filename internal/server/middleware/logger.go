@@ -16,11 +16,12 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 		duration := time.Since(start)
 		log.Printf(
-			"method=%s path=%s status=%d duration=%s",
-			r.Method,
-			r.URL.Path,
+			"status=%d method=%s duration=%s path=%s query=%s",
 			wrappedWriter.statusCode,
+			r.Method,
 			duration,
+			r.URL.Path,
+			r.URL.RawQuery,
 		)
 	})
 }
