@@ -1,6 +1,7 @@
 package thumbnail
 
 import (
+	"errors"
 	"fmt"
 	"github.com/lucsky/cuid"
 	"mime/multipart"
@@ -15,10 +16,45 @@ const (
 	MediumSize     Size = 640
 	LargeSize      Size = 1024
 	ExtraLargeSize Size = 2048
+	ErrorSize      Size = -1
 )
+
+var sizeToAbvrMap = map[Size]string{
+	ExtraSmallSize: "xs",
+	SmallSize:      "s",
+	MediumSize:     "m",
+	LargeSize:      "l",
+	ExtraLargeSize: "xl",
+}
+
+var abvrToSizeMap = map[string]Size{
+	"xs": ExtraSmallSize,
+	"s":  SmallSize,
+	"m":  MediumSize,
+	"l":  LargeSize,
+	"xl": ExtraLargeSize,
+}
+
+func SizeFromAbvr(l string) (Size, error) {
+
+	if size, exists := abvrToSizeMap[l]; exists {
+		return size, nil
+	}
+
+	return ErrorSize, errors.New("no matching size to abvr")
+
+}
 
 func (s Size) Px() int {
 	return int(s)
+}
+
+func (s Size) Abvr() (string, error) {
+	if str, exists := sizeToAbvrMap[s]; exists {
+		return str, nil
+	}
+
+	return "", errors.New("unable to match size to string abvr")
 }
 
 type Thumbnails struct {

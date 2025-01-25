@@ -4,7 +4,8 @@ import (
 	"Backend/internal/database"
 	"Backend/internal/env"
 	"Backend/internal/objectstore"
-	"Backend/internal/server/handler/api/v1"
+	apiV1 "Backend/internal/server/handler/api/v1"
+	imageV1 "Backend/internal/server/handler/image/v1"
 	"Backend/internal/server/middleware"
 	"context"
 	"fmt"
@@ -49,10 +50,23 @@ func Serve() {
 			http.StripPrefix(
 				"/api/v1",
 				middleware.Apply(
-					v1.Router(),
-					middleware.ApplyTimeout(2000*time.Millisecond),
+					apiV1.Router(),
+					middleware.ApplyTimeout(500*time.Millisecond),
 					middleware.ApplyAttachObjStore(objStore),
 					middleware.ApplyAttachDb(db),
+				),
+			),
+		)
+
+	mainRouter.
+		Handle(
+			"/image/v1/",
+			http.StripPrefix(
+				"/image/v1",
+				middleware.Apply(
+					imageV1.Router(),
+					middleware.ApplyTimeout(200*time.Millisecond),
+					middleware.ApplyAttachObjStore(objStore),
 				),
 			),
 		)

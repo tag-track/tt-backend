@@ -71,7 +71,7 @@ func detectImageTypeFromBytes(data []byte) (ImageType, error) {
 	case "image/heic":
 		return ImageTypeHEIC, nil
 	default:
-		return ImageTypeNotSupported, nil
+		return ImageTypeNotSupported, fmt.Errorf("image type not supported: %v", mimeType)
 	}
 }
 

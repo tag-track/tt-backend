@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"io"
 	"log"
 	"sync"
 )
@@ -101,4 +102,19 @@ func (m *MinioAdapter) UploadThumbnail(ctx context.Context, t *thumbnail.Thumbna
 	wg.Wait()
 
 	return errFlag
+}
+
+func (m *MinioAdapter) RetrieveImage(ctx context.Context, name string) (io.ReadCloser, error) {
+
+	_, err := m.client.StatObject(ctx, m.bucket, name, minio.StatObjectOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	obj, err := m.client.GetObject(ctx, m.bucket, name, minio.GetObjectOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	return obj, nil
 }
