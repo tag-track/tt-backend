@@ -74,7 +74,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			}
 
 			mut.Lock()
-			thumbnails = append(thumbnails, fmt.Sprintf("/images/v1/%s", t.GetImageBaseNameWithExt()))
+			thumbnails = append(thumbnails, fmt.Sprintf("/image/v1/%s", t.GetImageBaseNameWithExt()))
 			mut.Unlock()
 
 			wg.Done()
