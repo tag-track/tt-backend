@@ -10,8 +10,8 @@ import (
 
 type Entity struct {
 	Id          string         `json:"id" gorm:"primaryKey"`
-	ParentId    *string        `json:"parent_id" gorm:"index"` // Allow null for top-level entities
-	Parent      *Entity        `gorm:"foreignKey:ParentId"`    // Self-referencing relationship
+	ParentId    *string        `json:"parent_id" gorm:"index"`       // Allow null for top-level entities
+	Parent      *Entity        `json:"-" gorm:"foreignKey:ParentId"` // Self-referencing relationship
 	Children    []*Entity      `json:"children" gorm:"foreignKey:ParentId"`
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
